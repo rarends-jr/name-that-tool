@@ -22,16 +22,40 @@ export default function NameThatTool() {
   }
 
   async function createRoom(){
-    const res = await fetch("/api/room/create", {
-      method: "POST"
+    const res = await fetch("/api/rooms/activate", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      //todo pass in user creds
+      // body: JSON.stringify({ 
+        // user: userId
+      // }),
     });
-    const data = await res.json();
+    const json = await res.json();
 
-    setRoomCode(data.roomCode);
+    setRoomCode(json.data.code);
+    setInRoom(true);
   }
 
   async function isRoomValid(){
-    return false;
+    const params = new URLSearchParams();
+    params.append('code', roomCode);
+    // params.append('userId', userId);//todo pass in user creds
+
+    //todo check for error cases:
+    // - room already has an active host
+    // - player name already claimed by active player
+    // - game already in progress and player name not recognized
+
+    const res = await fetch(`/api/rooms?${params.toString()}`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+    const data = await res.json();
+    return data.success && data.data.length == 1 && data.data[0].active;
   }
   
   async function joinRoom(){
@@ -48,12 +72,11 @@ export default function NameThatTool() {
     if (!inRoom){
       content = (
         <>
-          <span>Your Name:</span>
+          <span>Our Gracious Host</span>
           <br></br>
-          <input value={playerName} onChange={e => setPlayerName(e.target.value)}></input>
-          <span>Enter Room Code:</span>
+          <label htmlFor="roomCode">Enter Room Code:</label>
           <br></br>
-          <input value={roomCode} onChange={e => setRoomCode(e.target.value)}></input>
+          <input id="roomCode" value={roomCode} onChange={e => setRoomCode(e.target.value)}></input>
           <br></br>
           <button onClick={joinRoom}>Join</button>
         </>
@@ -61,23 +84,26 @@ export default function NameThatTool() {
     }else{
       content = (
         <>
-          <span>{playerName}</span>
+          <span>Our Gracious Host</span>
           <br></br>
-          <span>{roomCode}</span>
+          <label htmlFor="roomCode">Room Code:&nbsp;</label><span id="roomCode">{roomCode}</span>
+          <br></br>
         </>
       );
+      //todo list players, start game button
     }
   }else if (role == "player"){
     if (!inRoom){
       content = (
         <>
-          <span>Your Name:</span>
+          <label htmlFor="playerName">Your Name:</label>
           <br></br>
-          <input value={playerName} onChange={e => setPlayerName(e.target.value)}></input>
-          <span>Enter Room Code:</span>
+          <input id="playerName" value={playerName} onChange={e => setPlayerName(e.target.value)}></input>
+          <hr></hr>
+          <label htmlFor="roomCode">Enter Room Code:&nbsp;</label>
           <br></br>
-          <input value={roomCode} onChange={e => setRoomCode(e.target.value)}></input>
-          <br></br>
+          <input id="roomCode" value={roomCode} onChange={e => setRoomCode(e.target.value)}></input>
+          <hr></hr>
           <button onClick={joinRoom}>Join</button>
         </>
       );
@@ -86,7 +112,7 @@ export default function NameThatTool() {
         <>
           <span>{playerName}</span>
           <br></br>
-          <span>{roomCode}</span>
+          <label htmlFor="roomCode">Room Code:&nbsp;</label><span id="roomCode">{roomCode}</span>
         </>
       );
     }
@@ -105,7 +131,7 @@ export default function NameThatTool() {
       <div className="flex">
         <span className="flex-1 text-3xl/10 font-medium mb-2 text-center">Name That Tool!</span>
       </div>
-      {Content}      
+      {content}      
     </>
   );
 }

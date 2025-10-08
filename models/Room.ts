@@ -12,6 +12,10 @@ const RoomSchema = new mongoose.Schema({
     type: String,
     default: "waiting",
   },
+  active: {
+    type: Boolean,
+    default: false,
+  },
   expiry_time: {
     type: Date,
     required: [true, 'Please provide an expiry date.'],
