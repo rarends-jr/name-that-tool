@@ -3,11 +3,14 @@ import dbConnect from "@/lib/dbConnect";
 import Room from "@/models/Room";
 
 
-export async function DELETE(req: Request, { params }: { params: { id: string } }) {
+export async function DELETE(req: Request, context: { params: Promise<{ id: string }>; }) {
   await dbConnect();
 
   try {
-    const room = await Room.deleteOne({ _id: params.id });
+    const resolvedParams = await context.params;
+    const { id } = resolvedParams;
+
+    const room = await Room.deleteOne({ _id: id });
     if (!room) {
       return NextResponse.json({ success: false }, { status: 404 });
     }else{
