@@ -7,7 +7,7 @@ export async function DELETE(req: Request, { params }: { params: { id: string } 
   await dbConnect();
 
   try {
-    const room = await Room.findById(params.id);
+    const room = await Room.deleteOne({ _id: params.id });
     if (!room) {
       return NextResponse.json({ success: false }, { status: 404 });
     }else{
@@ -18,12 +18,13 @@ export async function DELETE(req: Request, { params }: { params: { id: string } 
   }
 }
 
-export async function GET(req: Request, { params }: { params: { id: string } }) {
+export async function GET(req: Request, { params }: { params: Promise<{ id: string; }> }) {
   await dbConnect();
   
   try {
-    const room = await Room.deleteOne({ _id: params.id });
-    if (!room.deletedCount) {
+    const { id } = await params;
+    const room = await Room.findById(id);
+    if (!room) {
       return NextResponse.json({ success: false }, { status: 404 });
     }else{
       return NextResponse.json({ success: true, data: {} }, { status: 200 });

@@ -3,13 +3,13 @@ import { Content } from "next/font/google";
 import { useState } from "react";
 
 export default function NameThatTool() {
+  const [loading, setLoading] = useState(false);
   const [inRoom, setInRoom] = useState(false);
   const [role, setRole] = useState("");
   const [roomCode, setRoomCode] = useState("");
   const [playerName, setPlayerName] = useState("");
 
   async function startGame() {
-    setRole("host");
     createRoom();
   }
 
@@ -22,6 +22,7 @@ export default function NameThatTool() {
   }
 
   async function createRoom(){
+    setLoading(true);
     const res = await fetch("/api/rooms/activate", {
       method: "POST",
       headers: {
@@ -34,6 +35,8 @@ export default function NameThatTool() {
     });
     const json = await res.json();
 
+    setLoading(false);
+    setRole("host");
     setRoomCode(json.data.code);
     setInRoom(true);
   }
@@ -59,7 +62,9 @@ export default function NameThatTool() {
   }
   
   async function joinRoom(){
+    setLoading(true);
     const roomValid = await isRoomValid();
+    setLoading(false);
     if (roomValid){
       setInRoom(true);
     }else{
@@ -68,27 +73,34 @@ export default function NameThatTool() {
   }
 
   let content;
+  if (loading){
+    content = (
+      <div className="spinner-border" role="status">
+        <span className="sr-only">Loading...</span>
+      </div>
+    );
+  }
   if (role == "host"){
     if (!inRoom){
       content = (
-        <>
-          <span>Our Gracious Host</span>
+        <div className="row justify-content-center">
+          <h1 className="col-sm-12 text-center">Our Gracious Host</h1>
           <br></br>
           <label htmlFor="roomCode">Enter Room Code:</label>
           <br></br>
           <input id="roomCode" value={roomCode} onChange={e => setRoomCode(e.target.value)}></input>
           <br></br>
           <button onClick={joinRoom}>Join</button>
-        </>
+        </div>
       );
     }else{
       content = (
-        <>
-          <span>Our Gracious Host</span>
+        <div className="row justify-content-center">
+          <h1 className="col-sm-12 text-center">Our Gracious Host</h1>
           <br></br>
-          <label htmlFor="roomCode">Room Code:&nbsp;</label><span id="roomCode">{roomCode}</span>
+          <h2 className="col-sm-12 text-center"><label htmlFor="roomCode">Room Code:&nbsp;</label><span id="roomCode" className="text-danger">{roomCode}</span></h2>
           <br></br>
-        </>
+        </div>
       );
       //todo list players, start game button
     }
@@ -118,18 +130,18 @@ export default function NameThatTool() {
     }
   }else{
     content = (
-      <div className="flex">
-        <button className="flex-1 btn-primary" onClick={startGame}>Start Game</button>
-        <button className="flex-1 btn-primary" onClick={resumeGame}>Resume Game</button>
-        <button className="flex-1 btn-primary" onClick={joinGame}>Join Game</button>
+      <div className="row justify-content-center">
+        <button className="col-lg-2 col-md-4 col-sm-12 btn btn-primary m-2 border" onClick={startGame}>Start Game</button>
+        <button className="col-lg-2 col-md-4 col-sm-12 btn btn-secondary m-2 border" onClick={resumeGame}>Resume Game</button>
+        <button className="col-lg-2 col-md-4 col-sm-12 btn btn-success m-2 border" onClick={joinGame}>Join Game</button>
       </div>
     );
   }
 
   return (
     <>
-      <div className="flex">
-        <span className="flex-1 text-3xl/10 font-medium mb-2 text-center">Name That Tool!</span>
+      <div className="row justify-content-center m-2">
+          <img src="/images/splash.png" alt="Name That Tool Splash" className="img-fuild" style={{ maxWidth: "816px", width: "100%", height: "auto" }}></img>
       </div>
       {content}      
     </>

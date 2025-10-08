@@ -9,6 +9,7 @@
     "createRooms:local": "tsx --env-file=.env.local ./scripts/createRooms.ts"
   },
   "dependencies": {
+    "bootstrap": "^5.3.8",
     "mongodb": "^6.20.0",
     "mongoose": "^8.19.1",
     "next": "^15.5.4",
@@ -21,7 +22,6 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
-    "tailwindcss": "^4",
     "tsx": "^4.20.6",
     "typescript": "^5"
   }
