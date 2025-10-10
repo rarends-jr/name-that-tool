@@ -38,6 +38,9 @@ const RoomSchema = new mongoose.Schema({
     type: Date,
     required: [true, 'Please provide an expiry date.'],
   },
+  last_polled: {
+    type: Date,
+  },
   players: [{
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Player',

@@ -7,9 +7,9 @@ const ResponseSchema = new mongoose.Schema({
     ref: 'Player',
     required: true,
   },
-  question: {
+  room_question: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Question',
+    ref: 'Room_Question',
     required: true,
   },
   response: {

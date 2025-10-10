@@ -66,8 +66,28 @@ export default function NameThatTool() {
   }
 
   async function isRoomValid(){
-    const params = new URLSearchParams();
-    params.append('code', roomCode);
+    let res;
+    if (role === "player"){
+      res = await fetch("/api/rooms/join", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ 
+          code: roomCode,
+          name: playerName,
+        }),
+      });
+    }else{
+      const params = new URLSearchParams();
+      params.append('code', roomCode);
+      res = await fetch(`/api/rooms?${params.toString()}`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+    }
     // params.append('userId', userId);//todo pass in user creds
 
     //todo check for error cases:
@@ -75,14 +95,9 @@ export default function NameThatTool() {
     // - player name already claimed by active player
     // - game already in progress and player name not recognized
 
-    const res = await fetch(`/api/rooms?${params.toString()}`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
+    
     const data = await res.json();
-    return data.success && data.data.length == 1 && data.data[0].active;
+    return data.success && data.data.active;
   }
   
   async function joinRoom(){
@@ -103,65 +118,70 @@ export default function NameThatTool() {
         <span className="sr-only">Loading...</span>
       </div>
     );
-  }
-  if (role == "host"){
-    if (!inRoom){
-      content = (
-        <div className="row">
-          <h1 className="m-2 text-center">Our Gracious Host</h1>
-          <div className="col-sm-12 m-2 text-center">
-            <label className="m-2 text-center" htmlFor="roomCode">Enter Room Code:</label>
-            <input className="" id="roomCode" value={roomCode} onChange={e => setRoomCode(e.target.value)}></input>
-          </div>
-          <div className="col-sm-12 text-center">
-            <button className="col-lg-2 col-md-4 col-sm-12 m-2 text-center btn btn-primary" onClick={joinRoom}>Join as Host</button>
+  }else{
+    if (role == "host"){
+      if (!inRoom){
+        content = (
+          <div className="row">
+            <h1 className="m-2 text-center">Our Gracious Host</h1>
+            <div className="col-sm-12 m-2 text-center">
+              <label className="m-2 text-center" htmlFor="roomCode">Enter Room Code:</label>
+              <input className="" id="roomCode" value={roomCode} onChange={e => setRoomCode(e.target.value)}></input>
             </div>
-        </div>
-      );
+            <div className="col-sm-12 text-center">
+              <button className="col-lg-2 col-md-4 col-sm-12 m-2 text-center btn btn-primary" onClick={joinRoom}>Join as Host</button>
+              </div>
+          </div>
+        );
+      }else{
+        content = (
+          <div className="row justify-content-center">
+            <h1 className="col-sm-12 text-center m-2">Our Gracious Host</h1>
+            <br></br>
+            <h2 className="col-sm-12 text-center m-2"><label htmlFor="roomCode">Room Code:&nbsp;</label><span id="roomCode" className="text-danger">{roomCode}</span></h2>
+            <br></br>
+          </div>
+        );
+        //todo list players, start game button
+      }
+    }else if (role == "player"){
+      if (!inRoom){
+        content = (
+          <div className="row justify-content-center">
+            <div className="col-sm-12 m-2 text-center">
+              <label className="m-2 text-center" htmlFor="playerName">Your Name:</label>
+              <input className="" id="playerName" value={playerName} onChange={e => setPlayerName(e.target.value)}></input>
+            </div>          
+            <div className="col-sm-12 m-2 text-center">
+              <label className="m-2 text-center" htmlFor="roomCode">Enter Room Code:</label>
+              <input className="" id="roomCode" value={roomCode} onChange={e => setRoomCode(e.target.value)}></input>
+            </div>
+            <div className="col-sm-12 text-center">
+              <button className="col-lg-2 col-md-4 col-sm-12 m-2 text-center btn btn-primary" onClick={joinRoom}>Join as Player</button>
+              </div>
+          </div>
+        );
+      }else{
+        content = (
+          <div className="row justify-content-center">
+            <h1 className="col-sm-12 text-center m-2">{playerName}</h1>
+            <br></br>
+            <h2 className="col-sm-12 text-center m-2"><label htmlFor="roomCode">Room Code:&nbsp;</label><span id="roomCode" className="text-danger">{roomCode}</span></h2>
+            <br></br>
+          </div>
+        );
+      }
     }else{
       content = (
         <div className="row justify-content-center">
-          <h1 className="col-sm-12 text-center m-2">Our Gracious Host</h1>
-          <br></br>
-          <h2 className="col-sm-12 text-center m-2"><label htmlFor="roomCode">Room Code:&nbsp;</label><span id="roomCode" className="text-danger">{roomCode}</span></h2>
-          <br></br>
+          <button className="col-lg-2 col-md-4 col-sm-12 btn btn-primary m-2 border" onClick={startGame}>Host Game</button>
+          <button className="col-lg-2 col-md-4 col-sm-12 btn btn-secondary m-2 border" onClick={resumeGame}>Resume Hosting Game</button>
+          <button className="col-lg-2 col-md-4 col-sm-12 btn btn-success m-2 border" onClick={joinGame}>Join Game</button>
         </div>
       );
-      //todo list players, start game button
     }
-  }else if (role == "player"){
-    if (!inRoom){
-      content = (
-        <>
-          <label htmlFor="playerName">Your Name:</label>
-          <br></br>
-          <input id="playerName" value={playerName} onChange={e => setPlayerName(e.target.value)}></input>
-          <hr></hr>
-          <label htmlFor="roomCode">Enter Room Code:&nbsp;</label>
-          <br></br>
-          <input id="roomCode" value={roomCode} onChange={e => setRoomCode(e.target.value)}></input>
-          <hr></hr>
-          <button onClick={joinRoom}>Join</button>
-        </>
-      );
-    }else{
-      content = (
-        <>
-          <span>{playerName}</span>
-          <br></br>
-          <label htmlFor="roomCode">Room Code:&nbsp;</label><span id="roomCode">{roomCode}</span>
-        </>
-      );
-    }
-  }else{
-    content = (
-      <div className="row justify-content-center">
-        <button className="col-lg-2 col-md-4 col-sm-12 btn btn-primary m-2 border" onClick={startGame}>Host Game</button>
-        <button className="col-lg-2 col-md-4 col-sm-12 btn btn-secondary m-2 border" onClick={resumeGame}>Resume Hosting Game</button>
-        <button className="col-lg-2 col-md-4 col-sm-12 btn btn-success m-2 border" onClick={joinGame}>Join Game</button>
-      </div>
-    );
   }
+
 
   return (
     <>

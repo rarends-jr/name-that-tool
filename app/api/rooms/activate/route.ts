@@ -12,7 +12,9 @@ export async function POST(req: Request) {
     ]);
     if (room.length === 1){
       console.log(room[0]);
-      await Room.collection.updateOne({ _id: room[0]._id}, { $set: { active: true } });
+      let now = new Date();
+      let oneDay = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+      await Room.collection.updateOne({ _id: room[0]._id}, { $set: { active: true, last_polled: now, expiry_time: oneDay } });
 
       return NextResponse.json({ success: true, data: room[0] }, { status: 201 });
     }else{
