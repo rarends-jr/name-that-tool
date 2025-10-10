@@ -1,0 +1,7 @@
+{
+  "functions": {
+    "scripts/runGames.ts": {
+      "schedule": "* * * * *"
+    }
+  }
+}

@@ -2,22 +2,30 @@
   "name": "nextjs",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build --turbopack",
     "start": "next start",
-    "createRooms:local": "tsx --env-file=.env.local ./scripts/createRooms.ts"
+    "createRooms:local": "tsx --env-file=.env.local ./scripts/createRooms.ts",
+    "createQuestions:local": "tsx --env-file=.env.local ./scripts/createQuestions.ts",
+    "getQuestionImages:local": "tsx --env-file=.env.local ./scripts/getQuestionImages.ts",
+    "scheduleRunGames:local": "tsx --env-file=.env.local ./scripts/scheduleRunGames.ts"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.907.0",
     "bootstrap": "^5.3.8",
     "cron": "^4.3.3",
+    "google-search-results-nodejs": "^2.1.0",
     "mongodb": "^6.20.0",
     "mongoose": "^8.19.1",
     "nanoid": "^5.1.6",
     "next": "^15.5.4",
+    "node-cron": "^4.2.1",
     "openai": "^6.1.0",
     "react": "^19.1.0",
-    "react-dom": "^19.1.0"
+    "react-dom": "^19.1.0",
+    "serpapi": "^2.2.1"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",

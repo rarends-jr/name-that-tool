@@ -5,6 +5,7 @@ const QuestionSchema = new mongoose.Schema({
   round: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Round',
+    required: true,
   },
   imageUrl: {
     type: String,
@@ -12,9 +13,9 @@ const QuestionSchema = new mongoose.Schema({
   answer: {
     type: String,
   },
-  order:{
-    type: Number,
-    default: 0,
+  type:{
+    type: String,
+    default: 'tool',
   },
 }, {
   timestamps: true,

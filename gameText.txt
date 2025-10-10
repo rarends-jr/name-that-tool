@@ -1,0 +1,31 @@
+Welcome to Name That Tool! In this game, you'll be shown images of tools, and for every tool you can name, you'll get points! There's no penalty for guessing wrong, so make sure to enter something before time runs out!
+
+There are three rounds, and more points are available the later you get into the game. Likewise, the tools will become more obscure as the rounds advance, so even if you fall behind early, don't give up! Everybody loves a good comeback story!
+
+Best of luck to all of our players!
+
+-
+Welcome to Round One! In this round, each correct answer is worth one hundred points.
+
+-
+And that's the end of round one! Here are the current standings:
+
+-
+Welcome to Round Two! In this round, each correct answer is worth two hundred points.
+
+-
+And that's the end of round two! Here are the current standings:
+
+-
+Welcome to the final Round! In this round, you get to name a tool yourself for the other players to guess. For each tool submitted by another player, you get 250 points if you can guess it. 
+
+For the tool you submitted, you get 125 points for each player you stump. If you stump everyone, then you get no points, so don't make it too hard!
+
+-
+And that's the end of the game! Here are the final standings:
+
+-
+Congratulations to our winner!
+
+-
+Congratulations to our winners!

@@ -16,13 +16,19 @@ const RoomSchema = new mongoose.Schema({
     type: Number,
     default: -1,
   },
+  room_rounds: [{
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Room_Round',
+  }],
   current_round: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'Round',
+      ref: 'Room_Round',
+      default: null,
   },
   current_question: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'Question',
+      ref: 'Room_Question',
+      default: null,
   },
   active: {//true if a game has been started in this room
     type: Boolean,
@@ -32,6 +38,10 @@ const RoomSchema = new mongoose.Schema({
     type: Date,
     required: [true, 'Please provide an expiry date.'],
   },
+  players: [{
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Player',
+  }],
 }, {
   timestamps: true,
 });

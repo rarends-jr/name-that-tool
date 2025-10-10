@@ -5,9 +5,12 @@ const ResponseSchema = new mongoose.Schema({
   player: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Player',
+    required: true,
   },
   question: {
     type: mongoose.Schema.Types.ObjectId,
+    ref: 'Question',
+    required: true,
   },
   response: {
     type: String,
