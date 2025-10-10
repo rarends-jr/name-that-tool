@@ -1,6 +1,30 @@
 "use client";
 import { Content } from "next/font/google";
 import { useState } from "react";
+import { useEffect, useRef } from "react";
+
+//todo implement game polling to keep player active status up to date
+function useGamePolling() {
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    function poll() {
+      fetch("/api/game-state")
+        .then(res => res.json())
+        .then(data => {
+          // update UI with game state
+        });
+      // Schedule next poll at the start of the next second
+      const now = new Date();
+      const msToNextSecond = 1000 - now.getMilliseconds();
+      timerRef.current = setTimeout(poll, msToNextSecond);
+    }
+    poll();
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+    };
+  }, []);
+}
 
 export default function NameThatTool() {
   const [loading, setLoading] = useState(false);
@@ -83,22 +107,23 @@ export default function NameThatTool() {
   if (role == "host"){
     if (!inRoom){
       content = (
-        <div className="row justify-content-center">
-          <h1 className="col-sm-12 text-center">Our Gracious Host</h1>
-          <br></br>
-          <label htmlFor="roomCode">Enter Room Code:</label>
-          <br></br>
-          <input id="roomCode" value={roomCode} onChange={e => setRoomCode(e.target.value)}></input>
-          <br></br>
-          <button onClick={joinRoom}>Join</button>
+        <div className="row">
+          <h1 className="m-2 text-center">Our Gracious Host</h1>
+          <div className="col-sm-12 m-2 text-center">
+            <label className="m-2 text-center" htmlFor="roomCode">Enter Room Code:</label>
+            <input className="" id="roomCode" value={roomCode} onChange={e => setRoomCode(e.target.value)}></input>
+          </div>
+          <div className="col-sm-12 text-center">
+            <button className="col-lg-2 col-md-4 col-sm-12 m-2 text-center btn btn-primary" onClick={joinRoom}>Join as Host</button>
+            </div>
         </div>
       );
     }else{
       content = (
         <div className="row justify-content-center">
-          <h1 className="col-sm-12 text-center">Our Gracious Host</h1>
+          <h1 className="col-sm-12 text-center m-2">Our Gracious Host</h1>
           <br></br>
-          <h2 className="col-sm-12 text-center"><label htmlFor="roomCode">Room Code:&nbsp;</label><span id="roomCode" className="text-danger">{roomCode}</span></h2>
+          <h2 className="col-sm-12 text-center m-2"><label htmlFor="roomCode">Room Code:&nbsp;</label><span id="roomCode" className="text-danger">{roomCode}</span></h2>
           <br></br>
         </div>
       );
@@ -131,8 +156,8 @@ export default function NameThatTool() {
   }else{
     content = (
       <div className="row justify-content-center">
-        <button className="col-lg-2 col-md-4 col-sm-12 btn btn-primary m-2 border" onClick={startGame}>Start Game</button>
-        <button className="col-lg-2 col-md-4 col-sm-12 btn btn-secondary m-2 border" onClick={resumeGame}>Resume Game</button>
+        <button className="col-lg-2 col-md-4 col-sm-12 btn btn-primary m-2 border" onClick={startGame}>Host Game</button>
+        <button className="col-lg-2 col-md-4 col-sm-12 btn btn-secondary m-2 border" onClick={resumeGame}>Resume Hosting Game</button>
         <button className="col-lg-2 col-md-4 col-sm-12 btn btn-success m-2 border" onClick={joinGame}>Join Game</button>
       </div>
     );
