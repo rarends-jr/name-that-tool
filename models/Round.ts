@@ -9,7 +9,7 @@ const RoundSchema = new mongoose.Schema({
   intro_text: {
     type: String,
   },
-  intro_video: {
+  intro_audio: {
     type: String,
   },
   intro_length: {
@@ -18,7 +18,7 @@ const RoundSchema = new mongoose.Schema({
   outro_text: {
     type: String,
   },
-  outro_video: {
+  outro_audio: {
     type: String,
   },
   outro_length: {

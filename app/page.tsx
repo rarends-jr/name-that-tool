@@ -1,37 +1,16 @@
 "use client";
-import { Content } from "next/font/google";
 import { useState } from "react";
 import { useEffect, useRef } from "react";
 
-//todo implement game polling to keep player active status up to date
-function useGamePolling() {
-  const timerRef = useRef<NodeJS.Timeout | null>(null);
-
-  useEffect(() => {
-    function poll() {
-      fetch("/api/game-state")
-        .then(res => res.json())
-        .then(data => {
-          // update UI with game state
-        });
-      // Schedule next poll at the start of the next second
-      const now = new Date();
-      const msToNextSecond = 1000 - now.getMilliseconds();
-      timerRef.current = setTimeout(poll, msToNextSecond);
-    }
-    poll();
-    return () => {
-      if (timerRef.current) clearTimeout(timerRef.current);
-    };
-  }, []);
-}
-
 export default function NameThatTool() {
+  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [inRoom, setInRoom] = useState(false);
   const [role, setRole] = useState("");
   const [roomCode, setRoomCode] = useState("");
   const [playerName, setPlayerName] = useState("");
+  const [gameState, setGameState] = useState(null);
+  const [currentAnswer, setCurrentAnswer] = useState("");
 
   async function startGame() {
     createRoom();
@@ -88,16 +67,34 @@ export default function NameThatTool() {
         },
       });
     }
-    // params.append('userId', userId);//todo pass in user creds
-
-    //todo check for error cases:
-    // - room already has an active host
-    // - player name already claimed by active player
-    // - game already in progress and player name not recognized
-
     
     const data = await res.json();
-    return data.success && data.data.active;
+    if (!data.success){
+      setError(data.error);
+    }else{
+      setError("");
+    }
+    return data.success;
+  }
+
+  async function fetchGameState(){
+    const params = new URLSearchParams();
+    params.append('code', roomCode);
+    params.append('role', role);
+    params.append('playerName', playerName);
+    let res = await fetch(`/api/rooms/status?${params.toString()}`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+    
+    const data = await res.json();
+    if (!data.success){
+      setError(data.error);
+    }else{
+      setError("");
+    }
   }
   
   async function joinRoom(){
@@ -106,8 +103,6 @@ export default function NameThatTool() {
     setLoading(false);
     if (roomValid){
       setInRoom(true);
-    }else{
-      //render errors (invalid room code, game in progress, name already claimed)
     }
   }
 
@@ -126,7 +121,7 @@ export default function NameThatTool() {
             <h1 className="m-2 text-center">Our Gracious Host</h1>
             <div className="col-sm-12 m-2 text-center">
               <label className="m-2 text-center" htmlFor="roomCode">Enter Room Code:</label>
-              <input className="" id="roomCode" value={roomCode} onChange={e => setRoomCode(e.target.value)}></input>
+              <input className="" id="roomCode" value={roomCode} onChange={e => setRoomCode(e.target.value.toUpperCase())}></input>
             </div>
             <div className="col-sm-12 text-center">
               <button className="col-lg-2 col-md-4 col-sm-12 m-2 text-center btn btn-primary" onClick={joinRoom}>Join as Host</button>
@@ -150,11 +145,11 @@ export default function NameThatTool() {
           <div className="row justify-content-center">
             <div className="col-sm-12 m-2 text-center">
               <label className="m-2 text-center" htmlFor="playerName">Your Name:</label>
-              <input className="" id="playerName" value={playerName} onChange={e => setPlayerName(e.target.value)}></input>
+              <input className="" id="playerName" value={playerName} onChange={e => setPlayerName(e.target.value.toUpperCase())}></input>
             </div>          
             <div className="col-sm-12 m-2 text-center">
               <label className="m-2 text-center" htmlFor="roomCode">Enter Room Code:</label>
-              <input className="" id="roomCode" value={roomCode} onChange={e => setRoomCode(e.target.value)}></input>
+              <input className="" id="roomCode" value={roomCode} onChange={e => setRoomCode(e.target.value.toUpperCase())}></input>
             </div>
             <div className="col-sm-12 text-center">
               <button className="col-lg-2 col-md-4 col-sm-12 m-2 text-center btn btn-primary" onClick={joinRoom}>Join as Player</button>
@@ -182,11 +177,22 @@ export default function NameThatTool() {
     }
   }
 
+  useEffect(() => {
+    fetchGameState(); // Initial fetch when component mounts
+
+    const intervalId = setInterval(fetchGameState, 100); // Poll every 100ms
+
+    return () => clearInterval(intervalId); // Cleanup on unmount
+  }, [roomCode, role, playerName]); // Re-run effect if gameId changes
+
 
   return (
     <>
       <div className="row justify-content-center m-2">
           <img src="/images/splash.png" alt="Name That Tool Splash" className="img-fuild" style={{ maxWidth: "816px", width: "100%", height: "auto" }}></img>
+      </div>
+      <div className="row justify-content-center m-2">
+        <h2 className="col-sm-12 text-center text-danger">{error}</h2>
       </div>
       {content}      
     </>

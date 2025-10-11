@@ -12,9 +12,9 @@ async function runGameTick() {
 
     const rooms = await Room.find({active: true})
         .populate({ path: 'room_rounds', populate: { path: 'room_questions' } })
-        .populate({ path: 'current_round', populate: { path: 'questions' } })
+        .populate({ path: 'current_round', populate: { path: 'room_questions' } })
         .populate({ path: 'current_question', populate: { path: 'responses', populate: { path: 'player' } } })
-        .populate({ path: 'players', populate: { path: 'responses', populate: { path: 'question', populate: { path: 'round' } } } });
+        .populate({ path: 'players', populate: { path: 'responses', populate: { path: 'room_question', populate: { path: 'room_round', populate: { path: 'round' } } } } });
 
     console.log(`Running game tick for ${rooms.length} active rooms at ${new Date().toLocaleString()}`);
     rooms.forEach(room => {
@@ -40,7 +40,7 @@ async function runGameTick() {
                 if (room.state_timer <= 0) {
                     room.status = "starting_round";
                     room.current_round = room.room_rounds[0];
-                    room.state_timer = room.current_round.intro_length;
+                    room.state_timer = room.current_round.round.intro_length;
                 } else {
                     room.state_timer--;
                 }

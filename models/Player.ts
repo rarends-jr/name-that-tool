@@ -12,6 +12,10 @@ const PlayerSchema = new mongoose.Schema({
     minLength: [1, 'Your name must be at least 1 character'],
     maxlength: [255, 'What the hell use a a nickname'],
   },
+  priority: {
+    type: Boolean,
+    default: false
+  },
   last_polled: {
     type: Date,
   },

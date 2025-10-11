@@ -24,7 +24,7 @@ export async function POST(req: Request) {
 export async function GET(req: Request) {
   await dbConnect();
   try {
-    let json: Record<string, any> = {};
+    let json: Record<string, any> = { active: true};
 
     const { searchParams } = new URL(req.url);
     const code = searchParams.get('code');
@@ -32,12 +32,16 @@ export async function GET(req: Request) {
        json.code = code;
     }
     const rooms = await Room.find(json);
-    const res = NextResponse.json({ success: true, data: rooms}, { status: 200 });
+    if (rooms.length === 1){
+      return NextResponse.json({ success: true, data: rooms[0]}, { status: 200 }); 
+    }else{
+      return NextResponse.json({ error: "Room Not Found" }, { status: 404 });
+    }
     // // Generate CSRF token and set cookie
     // const csrfToken = generateCsrfToken();
     // const res = NextResponse.json({ success: true, data: rooms, csrfToken }, { status: 200 });
     // setCookie(res, "csrfToken", csrfToken);
-    return res;
+    // return res;
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
