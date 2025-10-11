@@ -51,6 +51,13 @@ async function runGameTick() {
                         await Response.deleteMany({ room_question: roomQuestion._id });
                     }
                 }
+                
+                room.state_timer = 10;
+                room.state_max = 10;
+                room.status = "starting_game";
+                room.current_round = null;
+                room.current_question = null;
+                await room.save();
                 break;
             case "starting_game":
                 if (room.state_timer <= 0) {

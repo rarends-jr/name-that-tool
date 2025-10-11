@@ -156,6 +156,7 @@ export default function NameThatTool() {
     } else {
       setError("");
       setAnswerMatchScore(data.data.match_score);
+      setCurrentAnswer("");
     }
   }
 
@@ -314,7 +315,7 @@ export default function NameThatTool() {
               <ul className="list-group">
                 {gameState.players.map((player: any) => (
                   <li key={player.name} className={`list-group-item ${player.match_score >= 0 || player.prompt_match_score >= 0 ? 'text-success' : player.active ? 'text-primary' : 'text-secondary'}`}>
-                    {player.name}
+                    {player.name} - {player.score}
                   </li>
                 ))}
               </ul>
