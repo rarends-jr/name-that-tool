@@ -38,8 +38,8 @@ export async function POST(req: Request) {
             let question = await Question.create({ 
               round: roomRound.round,
               creator: player, 
-              image_url: '', 
-              tool_name: json.tool_name
+              imageUrl: '', 
+              answer: json.tool_name
             });
             await getQuestionImage(question); 
             let roomQuestion = await Room_Question.create({

@@ -148,7 +148,7 @@ export async function GET(req: Request) {
           prompt_match_score: -1,
         };
         if (room.current_question) {
-          if (room.current_question.question.creator && room.current_question.question.creator._id.equals(player._id)){
+          if (room.current_question.question && room.current_question.question.creator && room.current_question.question.creator._id.equals(player._id)){
             resPlayer.match_score = 11;
           }else{
             let responses = player.responses.filter((r: any) => r.room_question._id.equals(room.current_question._id));
@@ -159,7 +159,7 @@ export async function GET(req: Request) {
         }
 
         if (room.current_round && room.current_round.round.user_submitted_questions){
-          let roomQuestion = room.current_round.room_questions.find((rq: any) => rq.question.creator && rq.question.creator._id.equals(player._id));
+          let roomQuestion = room.current_round.room_questions.find((rq: any) => rq.question && rq.question.creator && rq.question.creator._id.equals(player._id));
           if (roomQuestion) {
             resPlayer.prompt_match_score = 10;//if the question is inserted, it matches
           }
