@@ -7,6 +7,11 @@ const QuestionSchema = new mongoose.Schema({
     ref: 'Round',
     required: true,
   },
+  creator: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Player',
+    default: null,
+  },
   imageUrl: {
     type: String,
   },

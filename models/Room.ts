@@ -16,6 +16,10 @@ const RoomSchema = new mongoose.Schema({
     type: Number,
     default: -1,
   },
+  state_max: {//counts down seconds remaining in current state
+    type: Number,
+    default: -1,
+  },
   room_rounds: [{
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Room_Round',

@@ -15,12 +15,14 @@ export default function NameThatTool() {
     priority: boolean;
     active: boolean;
     score: number;
-    responded: boolean;
+    match_score: number;
+    prompt_match_score: number;
   };
 
   type GameState = {
     players: Player[];
     status: string;
+    state_max?: number;
     state_timer: number;
     round_intro_text?: string;
     round_intro_audio?: string;
@@ -31,11 +33,13 @@ export default function NameThatTool() {
     round_name?: string;
     question_image?: string;
     room_question_id?: string;
+    room_round_id?: string;
   };
 
   const [gameState, setGameState] = useState<GameState | null>(null);
   const [currentAnswer, setCurrentAnswer] = useState("");
-  const [answerSubmitted, setAnswerSubmitted] = useState(false);
+  const [answerMatchScore, setAnswerMatchScore] = useState(-1);
+  const [promptMatchScore, setPromptMatchScore] = useState(-1);
 
   async function createGame() {
     createRoom();
@@ -151,7 +155,35 @@ export default function NameThatTool() {
       setError(data.error);
     } else {
       setError("");
-      setAnswerSubmitted(true);
+      setAnswerMatchScore(data.data.match_score);
+    }
+  }
+
+  async function submitPrompt() {
+    if (currentAnswer.trim() === "") {
+      setError("Prompt cannot be empty.");
+      return;
+    }
+    setLoading(true);
+    const res = await fetch("/api/players/prompt", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        code: roomCode,
+        name: playerName,
+        room_round_id: gameState ? gameState.room_round_id : null,
+        tool_name: currentAnswer,
+      }),
+    });
+    const data = await res.json();
+    setLoading(false);
+    if (!data.success) {
+      setError(data.error);
+    } else {
+      setError("");
+      setPromptMatchScore(data.data.prompt_match_score);
     }
   }
 
@@ -209,11 +241,14 @@ export default function NameThatTool() {
   }
 
   async function fetchGameState(){
+    console.log("FETCH GAME STATE???");
     if (inRoom){
+      console.log("IN ROOM");
       const params = new URLSearchParams();
       params.append('code', roomCode);
       params.append('role', role);
       params.append('playerName', playerName);
+      console.log("fetching");
       let res = await fetch(`/api/rooms/status?${params.toString()}`, {
         method: "GET",
         headers: {
@@ -222,18 +257,14 @@ export default function NameThatTool() {
       });
       
       const data = await res.json();
-      if (!data.success){
-        setError(data.error);
-      }else{
-        setError("");
+      if (role === "player" && data.data.status === "asking_questions"){
+        setAnswerMatchScore(data.data.players[0].match_score);
+      }else if (role === "player" && data.data.status === "prompting_questions"){
+        setPromptMatchScore(data.data.players[0].prompt_match_score);
       }
-
       setGameState(data.data);
-      if (role === "player" && gameState?.status === "asking_questions"){
-        setAnswerSubmitted(gameState.players[0].responded);
-      }
     }else{
-      console.log("Not in room, skipping fetch");
+      console.log("NOT IN ROOM");
     }
   }
   
@@ -246,7 +277,7 @@ export default function NameThatTool() {
     }
   }
 
-  let timer = "";
+  let timer = (<></>);
   let content;
   if (loading){
     content = (
@@ -282,7 +313,7 @@ export default function NameThatTool() {
               <h2 className="m-2">Players:</h2>
               <ul className="list-group">
                 {gameState.players.map((player: any) => (
-                  <li key={player.name} className={`list-group-item ${player.responded? 'text-success' : player.active ? 'text-primary' : 'text-secondary'}`}>
+                  <li key={player.name} className={`list-group-item ${player.match_score >= 0 || player.prompt_match_score >= 0 ? 'text-success' : player.active ? 'text-primary' : 'text-secondary'}`}>
                     {player.name}
                   </li>
                 ))}
@@ -293,7 +324,8 @@ export default function NameThatTool() {
             button = (
               <button className="col-lg-2 col-md-4 col-sm-12 m-2 text-center btn btn-primary" onClick={startGame}>Start Game</button>
             );
-          } else if (gameState.status === "start_requested"){
+          } else if (gameState.status === "start_requested" || gameState.status === "starting_game"){
+            console.log("cancel button rendered?");
             button = (
               <button className="col-lg-2 col-md-4 col-sm-12 m-2 text-center btn btn-primary" onClick={cancelStart}>Cancel Start</button>
             );
@@ -331,11 +363,26 @@ Best of luck to all of our players!</h3>
                 <img src={gameState.question_image} alt="What is this Tool?" className="img-fluid" style={{ maxHeight: "400px", width: "auto" }} />
               </div>
             );  
+          } else if (gameState.status === "prompting_questions") {
+            host = gameState.round_name ?? host;
+            answer = (
+              <div className="col-sm-12 text-center">
+                <h3>It's time to demonstrate your superior tool knowledge...</h3>
+              </div>
+            );  
           }
           if (gameState.state_timer && gameState.state_timer >= 0) {
-            timer = `Time Remaining: ${gameState.state_timer} seconds`;
+            timer = (
+              <div className="row justify-content-center m-2">
+                <h2 className="col-sm-12 text-center text-warning">
+                  Time Remaining: {gameState.state_timer} seconds
+                </h2>
+                <progress max={gameState.state_max??gameState.state_timer} value={gameState.state_timer}></progress>
+              </div>
+            );
           }
         }
+        
         content = (
           <div className="row justify-content-center">
             <h1 className="col-sm-12 text-center m-2">{host}</h1>
@@ -374,11 +421,15 @@ Best of luck to all of our players!</h3>
             );
           }
           if (gameState.status === "asking_questions"){
-            if (answerSubmitted){
+            if (answerMatchScore > 10){
+              button = (
+                <div className="col-sm-12 m-2 text-center">This is your prompt, relax!</div>
+              );
+            } else if (answerMatchScore >= 0) {
               button = (
                 <div className="col-sm-12 m-2 text-center">Your answer has been recorded</div>
               );
-            }else{
+            } else {
               button = (
                 <div className="col-sm-12 m-2 text-center">
                   <label className="m-2 text-center" htmlFor="currentAnswer">Your Answer:</label>
@@ -388,9 +439,31 @@ Best of luck to all of our players!</h3>
                 </div>
               );
             }
+          } else if (gameState.status === "prompting_questions"){
+            if (promptMatchScore >= 7){
+              button = (
+                <div className="col-sm-12 m-2 text-center">Your tool prompt has been recorded</div>
+              );
+            } else {
+              button = (
+                <div className="col-sm-12 m-2 text-center">
+                  <label className="m-2 text-center" htmlFor="currentAnswer">Your Tool:</label>
+                  <input className="" id="currentAnswer" value={currentAnswer} onChange={e => setCurrentAnswer(e.target.value.toUpperCase())}></input>
+                  <br></br>
+                  <button className="col-lg-2 col-md-4 col-sm-12 m-2 text-center btn btn-primary" onClick={submitPrompt}>Submit Tool Prompt</button>
+                </div>
+              );
+            }
           }
           if (gameState.state_timer && gameState.state_timer >= 0) {
-            timer = `Time Remaining: ${gameState.state_timer} seconds`;
+            timer = (
+              <div className="row justify-content-center m-2">
+                <h2 className="col-sm-12 text-center text-warning">
+                  Time Remaining: {gameState.state_timer} seconds
+                </h2>
+                <progress max={gameState.state_max??gameState.state_timer} value={gameState.state_timer}></progress>
+              </div>
+            );
           }
         }
         content = (
@@ -431,9 +504,7 @@ Best of luck to all of our players!</h3>
       <div className="row justify-content-center m-2">
         <h2 className="col-sm-12 text-center"><label className="m-2" htmlFor="url">Join Now:&nbsp;</label><span id="url" className="badge rounded-pill bg-info text-dark">{window.location.href}</span></h2>
       </div>
-      <div className="row justify-content-center m-2">
-        <h2 className="col-sm-12 text-center text-warning">{timer}</h2>
-      </div>
+      {timer}
       <div className="row justify-content-center m-2">
         <h2 className="col-sm-12 text-center text-danger">{error}</h2>
       </div>

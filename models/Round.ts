@@ -36,6 +36,10 @@ const RoundSchema = new mongoose.Schema({
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Question',
   }],
+  user_submitted_questions: {
+      type: Boolean,
+      default: false,
+  }
 }, {
   timestamps: true,
 });

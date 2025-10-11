@@ -24,6 +24,6 @@ const ResponseSchema = new mongoose.Schema({
 }, {
   timestamps: true,
 });
-ResponseSchema.index({ player: 1, question: 1 }, { unique: true });
+ResponseSchema.index({ player: 1, room_question: 1 }, { unique: true });
 
 export default mongoose.models.Response || mongoose.model('Response', ResponseSchema);
