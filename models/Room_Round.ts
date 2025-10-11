@@ -2,12 +2,12 @@
 import mongoose from 'mongoose';
 
 const Room_RoundSchema = new mongoose.Schema({
-  round: {
+  room: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Room',
     required: true,
   },
-  room: {
+  round: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Round',
     required: true,

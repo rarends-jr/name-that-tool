@@ -11,19 +11,26 @@ export async function POST(req: Request) {
     let room = rooms.length > 0 ? rooms[0] : null;
     if (room){
       let matchingPlayers = await Player.find({room: room._id, name: json.name});
-      let player = null;;
+      let player = null;
       if (matchingPlayers.length <= 0){
-        player = await Player.create({ 
-          room: room._id,
-          name: json.name,
-          last_polled: new Date(),
-          responses: [],
-        });
-        return NextResponse.json({ success: true, data: room }, { status: 201 });
+        if (room.status !== "waiting") {
+          return NextResponse.json({ error: "Game Already Started" }, { status: 401 });
+        } else if (room.players.length >= 8) {
+          return NextResponse.json({ error: "Room Full" }, { status: 401 });
+        } else{
+          player = await Player.create({ 
+            room: room._id,
+            name: json.name,
+            last_polled: new Date(),
+            responses: [],
+          });
+          room.players.push(player);
+          room.save();
+          return NextResponse.json({ success: true, data: room }, { status: 201 });
+        }
       }else{
         player = matchingPlayers[0];
-        let oneSecondAgo = new Date(new Date().getTime() - 1000);
-        if (player.last_polled < oneSecondAgo){//name is now free, take it
+        if (player.last_polled < new Date(new Date().getTime() - 2000)){//name is now free, take it
           player.last_polled = new Date();
           await player.save();
           return NextResponse.json({ success: true, data: room }, { status: 201 });

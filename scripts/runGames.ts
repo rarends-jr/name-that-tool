@@ -1,18 +1,22 @@
 import dbConnect from "@/lib/dbConnect";
-import Room from "@/models/Room";
-import Player from "@/models/Player";
+import "@/models/Room_Round";
 import Room_Round from "@/models/Room_Round";
-import Round from "@/models/Round";
+import Room from "@/models/Room";
+import "@/models/Round";
+import "@/models/Room_Question";
 import Room_Question from "@/models/Room_Question";
-import Question from "@/models/Question";
+import "@/models/Player";
+import "@/models/Question";
 import Response from "@/models/Response";
+import "@/models/Response";
+import Player from "@/models/Player";
 
 async function runGameTick() {
     await dbConnect();
 
     const rooms = await Room.find({active: true})
-        .populate({ path: 'room_rounds', populate: { path: 'room_questions' } })
-        .populate({ path: 'current_round', populate: { path: 'room_questions' } })
+        .populate({ path: 'room_rounds', populate: [{ path: 'room_questions' },{ path: 'round' }] })
+        .populate({ path: 'current_round', populate: [{ path: 'room_questions' },{ path: 'round' }] })
         .populate({ path: 'current_question', populate: { path: 'responses', populate: { path: 'player' } } })
         .populate({ path: 'players', populate: { path: 'responses', populate: { path: 'room_question', populate: { path: 'room_round', populate: { path: 'round' } } } } });
 
@@ -59,7 +63,7 @@ async function runGameTick() {
             case "asking_questions":
                 let hasEveryoneResponded = true;
                 room.players.forEach((player: InstanceType<typeof Player>) => {
-                    if (room.currentQuestion.respnoses.filter((r: InstanceType<typeof Response>) => r.player._id.equals(player._id) && r.match_score > 0).length === 0) {
+                    if (room.current_question.responses.filter((r: InstanceType<typeof Response>) => r.player._id.equals(player._id) && r.match_score > 0).length === 0) {
                         hasEveryoneResponded = false;
                     }
                 });
@@ -97,6 +101,12 @@ async function runGameTick() {
                 room.save();
                 break;
             case "ending_game":
+                if (room.state_timer <= 0) {
+                    room.status = "waiting";
+                }else{
+                    room.state_timer--;
+                }
+                room.save();
                 break;
         }
     });

@@ -1,6 +1,5 @@
 // models/Room_Question.ts
 import mongoose from 'mongoose';
-
 const Room_QuestionSchema = new mongoose.Schema({
   room_round: {
     type: mongoose.Schema.Types.ObjectId,

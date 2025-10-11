@@ -25,7 +25,8 @@
     "openai": "^6.1.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
-    "serpapi": "^2.2.1"
+    "serpapi": "^2.2.1",
+    "sweetalert2": "^11.26.1"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
