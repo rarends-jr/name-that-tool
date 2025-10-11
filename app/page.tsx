@@ -502,7 +502,7 @@ Best of luck to all of our players!</h3>
           <img src="/images/splash.png" alt="Name That Tool Splash" className="img-fuild" style={{ maxWidth: "816px", width: "100%", height: "auto" }}></img>
       </div>
       <div className="row justify-content-center m-2">
-        <h2 className="col-sm-12 text-center"><label className="m-2" htmlFor="url">Join Now:&nbsp;</label><span id="url" className="badge rounded-pill bg-info text-dark">{window.location.href}</span></h2>
+        <h2 className="col-sm-12 text-center"><label className="m-2" htmlFor="url">Join Now:&nbsp;</label><span id="url" className="badge rounded-pill bg-info text-dark">randolpharends.dev</span></h2>
       </div>
       {timer}
       <div className="row justify-content-center m-2">
