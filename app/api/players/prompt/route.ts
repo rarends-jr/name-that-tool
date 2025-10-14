@@ -48,9 +48,7 @@ export async function POST(req: Request) {
               responses: []
             });
             roomRound.room_questions.push(roomQuestion);
-            roomRound.save();
-            roomRound.round.questions.push(question);
-            roomRound.round.save();
+            await roomRound.save();
           }
           return NextResponse.json({ success: true, data: room }, { status: 201 });
         }else{

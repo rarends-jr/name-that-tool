@@ -1,4 +1,5 @@
 import dbConnect from "@/lib/dbConnect";
+import shuffle from "@/lib/shuffle";
 import "@/models/Room_Round";
 import Room_Round from "@/models/Room_Round";
 import Room from "@/models/Room";
@@ -11,6 +12,7 @@ import Response from "@/models/Response";
 import "@/models/Response";
 import Player from "@/models/Player";
 import Question from "@/models/Question";
+import { ObjectId } from "mongodb";
 
 async function runGameTick() {
     await dbConnect();
@@ -30,26 +32,27 @@ async function runGameTick() {
                 for (const roomRound of room.room_rounds) {
                     if (roomRound.room.user_submitted_questions) {
                         for (const roomQuestion of roomRound.room_questions) {
-                            roomRound.room_questions = roomRound.room_questions.filter((rq: InstanceType<typeof Room_Question>) => !rq._id.equals(roomQuestion._id));
-                            await roomRound.save();
-                            roomRound.round.questions = roomRound.round.questions.filter((q: InstanceType<typeof Question>) => !q._id.equals(roomQuestion.question));
-                            await roomRound.round.save();
+                            await Response.deleteMany({ room_question: roomQuestion._id });
                             await Question.findByIdAndDelete(roomQuestion.question_id);
                             await Room_Question.findByIdAndDelete(roomQuestion._id);
                         }
+                        roomRound.room_questions = [];
+                        await roomRound.save();
                     }
                 }
                 //clear out custom responses from previous games
                 for (const roomRound of room.room_rounds) {
                     for (const roomQuestion of roomRound.room_questions) {
-                        for (const response of roomQuestion.responses) {
-                            response.room_question.responses = response.room_question.responses.filter((r: InstanceType<typeof Response>) => !r._id.equals(response._id));
-                            await response.room_question.save(); 
-                            response.player.responses = response.player.responses.filter((r: InstanceType<typeof Response>) => !r._id.equals(response._id));
-                            await response.player.save();
-                        }
+                        // roomQuestion.responses = [];
+                        // await roomQuestion.save();
+
                         await Response.deleteMany({ room_question: roomQuestion._id });
                     }
+                }
+
+                for (const player of room.players) {
+                    player.responses = [];
+                    await player.save();
                 }
                 
                 room.state_timer = 10;
@@ -183,22 +186,6 @@ async function runGameTick() {
                 break;
         }
     });
-}
-
-function shuffle<T>(array: Array<T>) {
-  let currentIndex = array.length;
-
-  // While there remain elements to shuffle...
-  while (currentIndex != 0) {
-
-    // Pick a remaining element...
-    let randomIndex = Math.floor(Math.random() * currentIndex);
-    currentIndex--;
-
-    // And swap it with the current element.
-    [array[currentIndex], array[randomIndex]] = [
-      array[randomIndex], array[currentIndex]];
-  }
 }
 
 export function runGames(){
