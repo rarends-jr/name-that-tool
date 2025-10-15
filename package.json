@@ -16,6 +16,7 @@
     "@aws-sdk/client-s3": "^3.907.0",
     "bootstrap": "^5.3.8",
     "cron": "^4.3.3",
+    "datatables": "^1.10.18",
     "google-search-results-nodejs": "^2.1.0",
     "mongodb": "^6.20.0",
     "mongoose": "^8.19.1",

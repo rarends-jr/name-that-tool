@@ -30,7 +30,7 @@ export async function getQuestionImage(question: InstanceType<typeof Question>) 
 async function getFirstImage(query: String) {
     let result = null;
     try {
-        let response = await fetch(`https://serpapi.com/search.json?engine=google_images&q=${query}&location=Austin,+TX,+Texas,+United+States
+        let response = await fetch(`https://serpapi.com/search.json?engine=google_images&q=${encodeURIComponent(query.toString())}&location=Austin,+TX,+Texas,+United+States
 &api_key=${process.env.SERPAPI_KEY}`, { method: 'GET' , headers: { "Content-Type": "application/json", }, });
 
         let json = await response.json();

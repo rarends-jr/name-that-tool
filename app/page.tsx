@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
 import Swal from 'sweetalert2';
 
 export default function NameThatTool() {
@@ -13,7 +13,8 @@ export default function NameThatTool() {
   type Player = {
     name: string;
     priority: boolean;
-    active: boolean;
+    last_polled: string;
+    active: number;
     score: number;
     match_score: number;
     prompt_match_score: number;
@@ -242,30 +243,41 @@ export default function NameThatTool() {
   }
 
   async function fetchGameState(){
-    console.log("FETCH GAME STATE???");
     if (inRoom){
-      console.log("IN ROOM");
+      let res;
+      if (role === "host"){//host steps, all users poll for status
+        res = await fetch("/api/rooms/step", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ 
+            code: roomCode
+          }),
+        });
+      }
+
+      
       const params = new URLSearchParams();
       params.append('code', roomCode);
       params.append('role', role);
       params.append('playerName', playerName);
-      console.log("fetching");
-      let res = await fetch(`/api/rooms/status?${params.toString()}`, {
+      res = await fetch(`/api/rooms/status?${params.toString()}`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
         },
       });
       
+      
       const data = await res.json();
+      console.log("fetched game state:", data);
       if (role === "player" && data.data.status === "asking_questions"){
         setAnswerMatchScore(data.data.players[0].match_score);
       }else if (role === "player" && data.data.status === "prompting_questions"){
         setPromptMatchScore(data.data.players[0].prompt_match_score);
       }
       setGameState(data.data);
-    }else{
-      console.log("NOT IN ROOM");
     }
   }
   
@@ -280,6 +292,12 @@ export default function NameThatTool() {
 
   let timer = (<></>);
   let content;
+  let roomCodeDom = (<></>);
+  if (inRoom && roomCode){
+    roomCodeDom = (<>
+      <label htmlFor="roomCode">Room Code:&nbsp;</label><span id="roomCode" className="badge rounded-pill bg-warning text-dark">{roomCode}</span>
+    </>);
+  }
   if (loading){
     content = (
       <div className="row justify-content-center">
@@ -314,7 +332,7 @@ export default function NameThatTool() {
               <h2 className="m-2">Players:</h2>
               <ul className="list-group">
                 {gameState.players.map((player: any) => (
-                  <li key={player.name} className={`list-group-item ${player.match_score >= 0 || player.prompt_match_score >= 0 ? 'text-success' : player.active ? 'text-primary' : 'text-secondary'}`}>
+                  <li key={player.name} className={`list-group-item ${player.match_score >= 0 || player.prompt_match_score >= 0 ? 'text-success' : player.active === "1" ? 'text-primary' : 'text-secondary'}`}>
                     {player.name} - {player.score}
                   </li>
                 ))}
@@ -388,8 +406,6 @@ Best of luck to all of our players!</h3>
           <div className="row justify-content-center">
             <h1 className="col-sm-12 text-center m-2">{host}</h1>
             {answer}
-            <br></br>
-            <h2 className="col-sm-12 text-center m-2"><label htmlFor="roomCode">Room Code:&nbsp;</label><span id="roomCode" className="badge rounded-pill bg-warning text-dark">{roomCode}</span></h2>
             <br></br>
             {players}
             {button}
@@ -471,8 +487,6 @@ Best of luck to all of our players!</h3>
           <div className="row justify-content-center">
             <h1 className="col-sm-12 text-center m-2">{playerName}</h1>
             <br></br>
-            <h2 className="col-sm-12 text-center m-2"><label htmlFor="roomCode">Room Code:&nbsp;</label><span id="roomCode" className="badge rounded-pill bg-warning text-dark">{roomCode}</span></h2>
-            <br></br>
             {button}
           </div>
         );
@@ -503,7 +517,7 @@ Best of luck to all of our players!</h3>
           <img src="/images/splash.png" alt="Name That Tool Splash" className="img-fuild" style={{ maxWidth: "816px", width: "100%", height: "auto" }}></img>
       </div>
       <div className="row justify-content-center m-2">
-        <h2 className="col-sm-12 text-center"><label className="m-2" htmlFor="url">Join Now:&nbsp;</label><span id="url" className="badge rounded-pill bg-info text-dark">randolpharends.dev</span></h2>
+        <h2 className="col-sm-12 text-center"><label className="m-2" htmlFor="url">Join Now:&nbsp;</label><span id="url" className="badge rounded-pill bg-info text-dark">randolpharends.dev</span> {roomCodeDom} </h2>
       </div>
       {timer}
       <div className="row justify-content-center m-2">
