@@ -16,19 +16,13 @@ const s3Client = new S3Client({
 
 export async function getQuestionImage(question: InstanceType<typeof Question>) {
     console.log(`Processing question ${question._id} (${question.answer})`);
-    let imageUrl = await getFirstImage(question.answer);
-    if (imageUrl !== null) {
-        const imageResponse = await fetch(imageUrl);
-        if (imageResponse.ok) {
-            const imageBuffer = await imageResponse.arrayBuffer();
-            await uploadFile('name-that-tool', `tool_images/${question._id}.jpg`, Buffer.from(imageBuffer));
-            question.imageUrl = `https://name-that-tool.s3.amazonaws.com/tool_images/${question._id}.jpg`;
-            question.save();
-            console.log(`Updated question ${question._id} with image URL ${question.imageUrl}`);
-        }else{
-            console.log(`Failed to fetch image from URL: ${imageUrl} for question ${question._id} (${question.answer})`);
-        }
-    }else{
+    const imageBuffer = await getFirstImage(question.answer);
+    if (imageBuffer) {
+        await uploadFile('name-that-tool', `tool_images/${question._id}.jpg`, Buffer.from(imageBuffer));
+        question.imageUrl = `https://name-that-tool.s3.amazonaws.com/tool_images/${question._id}.jpg`;
+        question.save();
+        console.log(`Updated question ${question._id} with image URL ${question.imageUrl}`);
+    } else {
         console.log(`No image found for question ${question._id} (${question.answer})`);
     }
 }
@@ -42,11 +36,25 @@ async function getFirstImage(query: String) {
         let json = await response.json();
 
         if (json && json.images_results && json.images_results.length > 0) {
-            const firstImage = json.images_results[0];
-            console.log("First image title:", firstImage.title);
-            console.log("First image source:", firstImage.source);
-            console.log("First image URL:", firstImage.original); // URL of the original image
-            result = firstImage.original;
+            for (const img of json.images_results) {
+                console.log("Image title:", img.title);
+                console.log("Image source:", img.source);
+                console.log("Image URL:", img.original); // URL of the original image
+                try{
+                    const imageResponse = await fetch(img.original);
+                    if (imageResponse.ok) {
+                        console.log(`Successfully fetched image from URL: ${img.original} for query: ${query}`);
+                        result = await imageResponse.arrayBuffer();
+                        break; // Exit the loop after successfully fetching the first valid image
+                    } else {
+                        console.log(`Failed to fetch image from URL: ${img.original} for query: ${query}`);
+                        result = null;
+                    }
+                }catch (error){
+                    console.log(`Error fetching image from URL: ${img.original} for query: ${query}`, error);
+                    result = null;
+                }
+            }            
         } else {
             console.log("No image results found for the query:", query);
             result = null;
